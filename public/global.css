@@ -1,0 +1,27 @@
+:root {
+	--primary: #f4a261;
+	--accent: #e76f51;
+	--light: #e9c46a;
+	--secondary-accent: #2a9d8f;
+	--secondary: #264653;
+}
+
+html, body {
+	position: relative;
+	width: 100%;
+	height: 95%;
+	font-family: Nunito, Arial, Helvetica, sans-serif;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+.center {
+	display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+}
+
