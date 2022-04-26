@@ -1,5 +1,7 @@
 Email website KSA De Biekorf
 
+Meer informatie over de werking in het draaiboek.
+
 ## Contributing
 
 ```
@@ -11,3 +13,8 @@ npm i -g sass
 # Start dev server
 npm run dev
 ```
+
+## TODO
+- File attachements
+
+(c) KSA De Biekorf, Jonas Everaert 2022

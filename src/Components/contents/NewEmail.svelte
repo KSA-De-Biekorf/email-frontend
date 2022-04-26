@@ -1,9 +1,12 @@
 <script>
-  import MultiInput from '../MultiInput.svelte'
-  import Input from '../Input.svelte'
-  import LabelWithIcon from '../LabelWithIcon.svelte'
+  import MultiInput from '../components/MultiInput.svelte'
+  import Input from '../components/Input.svelte'
+  import LabelWithIcon from '../components/LabelWithIcon.svelte'
+  import currentUser from '../../../scripts/firebase/stores/currentUser'
+  import convertBanToDatabaseStandard from '../../../scripts/ksa/convertBan'
 
-  import { onMount } from 'svelte'
+  import { onMount, onDestroy } from 'svelte'
+  import { retrieveAuthToken } from '../../../scripts/firebase/auth/authToken';
 
   const bannen = ["KAB", "PAG", "JKN", "KN", "JHN", "HN", "Leiding", "VWB", "Oud-Leiding"]
   // Hoe het in de database staat
@@ -12,6 +15,7 @@
   let parser
 
   onMount(() => {
+    // Init editor
     tinymce.init({
       selector: "textarea#new-email-editor",
       plugins: ["autosave"],
@@ -31,9 +35,14 @@
     parser = tinymce.html.DomParser({validate: true}, tinymce.activeEditor.schema)
   })
 
+  onDestroy(() => {
+    // Remove editor
+    tinymce.remove("textarea#new-email-editor")
+  })
+
   function parseHTML() {
     return tinymce.activeEditor.getContent()
-  }  
+  }
 
   let selectedBannen = []
 
@@ -53,14 +62,16 @@
     subject = newSubject
   }
 
+  let responses = []
   function sendEmail() {
+    responses = []
     if (subject == "") {
       alert("Je onderwerp is leeg")
       return
     }
 
     let content = parseHTML()
-    if (content = "") {
+    if (content == "") {
       alert("Je email is leeg")
       return
     }
@@ -71,6 +82,82 @@
     }
 
     // call API
+    let currentUsrData = null
+    let unsubCurrentUser = currentUser.subscribe((data) => {
+      currentUsrData = data
+    })
+
+    if (currentUsrData == null) {
+      alert("Niet ingelogd")
+      return
+    }
+    // send email (one ban at a time)
+    selectedBannen.forEach(async (ban) => {
+      const message = {
+        FromName: currentUsrData.name,
+        FromAddr: `${currentUsrData.name}@ksadebiekorf.be`,
+        ReplyToName: currentUsrData.name,
+        ReplyToAddr: currentUsrData.email,
+        Ban: convertBanToDatabaseStandard(ban),
+        Subject: subject,
+        Content: content
+      }
+
+      console.log("Sending email to", ban, `(${convertBanToDatabaseStandard(ban)})`)
+
+      // Prepare api call
+      const endpoint = `https://email-api.ksadebiekorf.be/api/send_email_to_ban`
+
+      const data = JSON.stringify(message)
+      // try catch blocks are evil
+      let token
+      try {
+        token = await retrieveAuthToken()
+      } catch (e) {
+        alert(`Kon niet authorizeren: ${err}`)
+        return
+      }
+      
+      const headers = {
+        'Authorization': token
+      }
+
+      // Make the api request
+      let response
+      try {
+        response = await fetch(endpoint, {
+          method: 'POST',
+          mode: 'cors', // !
+          headers: headers,
+          body: data
+        })
+      } catch (err) {
+        console.log(err)
+        alert(err)
+        return
+      }
+
+      console.log(response)
+
+      const status = response.status
+      const statusText = response.statusText
+      const respData = await response.text()
+
+      console.log(`${status} ${statusText}. ${respData}`)
+
+      if (status >= 200 && status < 300) {
+        responses.push(`Email verzonden naar ${convertBanToDatabaseStandard(ban)}`)
+      } else if (status < 200) {
+        response.body.getReader
+        responses.push(`[i] ${status} ${statusText}. ${respData}`)
+      } else {
+        responses.push(`Error ${status}: ${statusText}. ${respData}`)
+      }
+
+      responses = responses
+    })
+    
+    unsubCurrentUser()
   }
 </script>
 
@@ -89,6 +176,11 @@
       <Input name="onderwerp" id="subject-inp" placeholder="onderwerp" onChange="{subjectChanged}" width=300/>
       <button class="btn" on:click={() => sendEmail()}>verzenden</button>
     </div>
+  </div>
+  <div class="status {responses.length == 0 ? "hidden" : ""}">
+    {#each responses as response}
+    <p>{response}</p>
+    {/each}
   </div>
   <textarea name="nieuwe email" id="new-email-editor" cols="30" rows="10"></textarea>
 </div>
@@ -118,5 +210,14 @@
     align-content: baseline;
     display: flex;
     gap: 10px;
+  }
+
+  .status {
+    text-align: left;
+    margin-left: 15px;
+  }
+
+  .status.hidden {
+    display: none;
   }
 </style>

@@ -1,5 +1,5 @@
 <script>
-	import Loading from "./Components/Loading.svelte"
+	import Loading from "./Components/components/Loading.svelte"
 	import Login from "./Components/Login.svelte"
 	import Index from './Components/Index.svelte'
 	import { initFirebase } from '../scripts/firebase/auth/setup'

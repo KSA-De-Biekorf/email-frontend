@@ -15,7 +15,7 @@
   const dropdownDefaultWidth = 40;
   let dropdownResized = false
 
-  import { sortMap } from '../../scripts/sort'
+  import { sortMap } from '../../../scripts/sort'
   import { onMount } from 'svelte'
   import stringSimilarity from 'string-similarity'
 
@@ -35,16 +35,19 @@
     container.style.left = inputBoxRect.left + "px"
   }
 
-  let autocompleteList = []
+  let autocompleteList = valueList
+
+  function onInputClick(e) {
+    setDropdownPos()
+    autocompletListShown = true
+  }
 
   /**`e`: event*/
   function onInputChange(e) {
-    // TODO: find better solution for dropdown position (problems with onMount)
-    setDropdownPos()
-
     const elem = document.getElementById(id)
     const text = elem.value
 
+    // find most similar values in the list
     let similarityList = []
     valueList.forEach((val) => {
       let similarityScore = stringSimilarity.compareTwoStrings(val.toUpperCase(), text.toUpperCase())
@@ -56,15 +59,15 @@
         similarityList[i][1] = similarityScore
       }
     }
-    
+
+    // Sort the list based on similarity
     sortMap(similarityList)
 
+    // add sorted items to the list
     autocompleteList = []
     similarityList.forEach((elem) => {
       autocompleteList.push(elem[0])
     })
-
-    autocompletListShown = true
   }
 
   let selectedList = []
@@ -90,6 +93,9 @@
       case "Enter":
         select(autocompleteList[0])
         break
+      case "Escape":
+        closeDropdown()
+        break
     }
   }
 
@@ -101,7 +107,7 @@
 <svelte:window on:resize="{onResizeWindow}"></svelte:window>
 
 <div class="input-group" style="width: {width}px;">
-  <input type="input" class="input-field" placeholder="{placeholder}" name="{name}" id='{id}' on:input={onInputChange} on:keypress={onKeyPressOnInput} />
+  <input type="input" class="input-field" placeholder="{placeholder}" name="{name}" id='{id}' on:input={onInputChange} on:keydown={onKeyPressOnInput} on:click={onInputClick} />
   <label for="{id}" class="input-label">{placeholder}</label>
 </div>
 <div class="dropdown-container" style="transform: {autocompletListShown ? "scale(100%)" : "scale(0)"}">
@@ -154,13 +160,14 @@
 
     width: $full-dropdown-width;
   }
+
   .dropdown-item {
     cursor: pointer;
     margin: 0;
     padding: 5px $dropdown-item-padding;
     width: $dropdown-width;
 
-    &:hover {
+    &:hover, &:first-child  {
       background-color: $primary;
     }
 
@@ -170,6 +177,7 @@
     }
     */
   }
+
 
   /*input box*/
   .input-group {

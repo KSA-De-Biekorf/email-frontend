@@ -1,21 +1,63 @@
 <script>
+  import { signIn } from '../../scripts/firebase/auth/signIn'
 
+  let errorMessage = ""
+
+  function logIn() {
+    let emlElem = document.getElementById("eml")
+    let passElem = document.getElementById("pass")
+
+    let email = emlElem.value
+    let pass = passElem.value
+
+    signIn({
+      usr: email,
+      pwd: pass
+    }).then(() => {
+      console.log("User signed in succesfully")
+    }).catch((err) => {
+      console.log(err.code, err.message)
+      switch (err.code) {
+        case "auth/invalid-email":
+          errorMessage = "Ongeldige email"
+          break
+        case "auth/wrong-password":
+          errorMessage = "Ongeldig wachtwoord"
+          break
+        default:
+        errorMessage = `${err.code} ${err.message}`
+      }
+    })
+  }
+
+  function onKeyPressed(e) {
+    switch (e.key) {
+      case "Enter":
+        logIn()
+    }
+  }
 </script>
 
 <div class="login-container">
   <div class="login-box flex vstack">
     <h3>Login</h3>
-    <div class="login-button-group">
-      <input type="text" name="Email" id="eml" required="true">
+    <div class="login-input-group">
+      <input type="text" name="Email" id="eml" required="true" on:keypress={onKeyPressed}>
       <span class="bar-fixed"></span>
       <span class="bar"></span>
       <label for="eml">Email</label>
     </div>
-    <div class="login-button-group">
-      <input type="password" name="Wachtwoord" id="pass" required="true">
+    <div class="login-input-group">
+      <input type="password" name="Wachtwoord" id="pass" required="true" on:keypress={onKeyPressed}>
       <span class="bar-fixed"></span>
       <span class="bar"></span>
       <label for="pass">Wachtwoord</label>
+    </div>
+    <div class="login-input-group">
+      <button class="btn" on:click={logIn}>Inloggen</button>
+    </div>
+    <div class="error-message" style="{errorMessage != "" ? "scale(100%)" : "scale(0)"}">
+      <p>{errorMessage}</p>
     </div>
   </div>
 </div>
@@ -25,6 +67,11 @@
     --input-width: 300px;
     --bar-color: var(--primary);
     --bar-color-inactive: var(--secondary);
+  }
+  .error-message {
+    width: var(--input-width);
+    height: 100%;
+    color: red;
   }
   /*Center contents*/
   .login-container {
@@ -47,10 +94,10 @@
     font-size: 3rem;
   }
 
-  .login-button-group {
+  .login-input-group {
     position: relative;
   }
-  .login-button-group:nth-child(3) {
+  .login-input-group:not(:first-child):not(:nth-child(2)) {
     margin-top: 30px;
   }
   input {

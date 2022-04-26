@@ -1,12 +1,16 @@
 import { signInWithEmailAndPassword } from "firebase/auth"
 import { auth } from './setup'
 
+// Signs in the usr, returning a promise
+// - `usr`: { usr: "email", pwd: "password" }
 export function signIn(usr) {
-    signInWithEmailAndPassword(auth, usr.usr, usr.pwd)
+    return new Promise((resolve, reject) => {
+        signInWithEmailAndPassword(auth, usr.usr, usr.pwd)
         .then((userCred) => {
-            // const user = userCred.user
+            resolve(userCred)
         })
         .catch((err) => {
-            console.log(err.code, err.message)
+            reject(err)
         })
+    })
 }
