@@ -110,6 +110,7 @@
   <input type="input" class="input-field" placeholder="{placeholder}" name="{name}" id='{id}' on:input={onInputChange} on:keydown={onKeyPressOnInput} on:click={onInputClick} />
   <label for="{id}" class="input-label">{placeholder}</label>
 </div>
+<!--TODO: native list on mobile devices-->
 <div class="dropdown-container" style="transform: {autocompletListShown ? "scale(100%)" : "scale(0)"}">
   <div class="close-container">
     <img src="https://img.icons8.com/ios-glyphs/30/000000/xbox-x.png" alt="sluiten" width="20px" height="20px" on:click={closeDropdown}/>

@@ -6,15 +6,13 @@
 	--secondary: #264653;
 }
 
-html, body {
-	position: relative;
-	width: 100%;
-	height: 95%;
-	font-family: Nunito, Arial, Helvetica, sans-serif;
-}
-
 body {
-  overflow-x: hidden;
+	position: relative;
+	height: 95%;
+	width: 90%;
+	align-content: center;
+	align-items: center;
+	font-family: Nunito, Arial, Helvetica, sans-serif;
 }
 
 .center {

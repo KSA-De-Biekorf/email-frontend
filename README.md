@@ -16,5 +16,6 @@ npm run dev
 
 ## TODO
 - File attachements
+- Upload to server CI
 
 (c) KSA De Biekorf, Jonas Everaert 2022

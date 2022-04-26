@@ -7,14 +7,23 @@
 
   let activeElem = "new-email"
 
-  onMount(() => {
+  function setNavWidth() {
     let liElems = document.getElementsByTagName("li")
     Array.prototype.slice.call(liElems).forEach((elem) => {
       elem.style.setProperty('--button-width', elem.clientWidth + "px")
     })
+  }
+
+  onMount(() => {
+    setNavWidth()
   })
+
+  function onResize() {
+    setNavWidth()
+  }
 </script>
 
+<svelte:window on:resize={onResize}></svelte:window>
 <div class="index {activeElem === "new-email" ? "new-email-view" : ""}">
   <nav>
     <ul>

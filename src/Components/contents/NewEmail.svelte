@@ -192,6 +192,7 @@
 
   button {
     margin-bottom: 15px;
+    margin-right: 15px;
   }
   .ban-container {
     display: flex;
