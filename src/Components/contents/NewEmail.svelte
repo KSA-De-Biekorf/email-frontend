@@ -4,6 +4,7 @@
   import LabelWithIcon from '../components/LabelWithIcon.svelte'
   import currentUser from '../../../scripts/firebase/stores/currentUser'
   import convertBanToDatabaseStandard from '../../../scripts/ksa/convertBan'
+  import { parseHTMLForEmail } from '../../../scripts/ksa/parseHTML'
 
   import { onMount, onDestroy } from 'svelte'
   import { retrieveAuthToken } from '../../../scripts/firebase/auth/authToken';
@@ -18,8 +19,8 @@
     // Init editor
     tinymce.init({
       selector: "textarea#new-email-editor",
-      plugins: ["autosave"],
-      toolbar: "restoredraft | undo redo | styles | bold italic | alignleft aligncenter alignright alignjustify | outdent indent",
+      plugins: ["autosave", "link", "autolink", "table", "template", "searchreplace", "fullscreen", "lists", "advlist", "image"],
+      toolbar: "restoredraft | undo redo | styles | bold italic | alignleft aligncenter alignright alignjustify | outdent indent ",
       menu: {
         file: { title: 'File', items: 'newdocument restoredraft | preview | export print | deleteallconversations' },
         edit: { title: 'Edit', items: 'undo redo | cut copy paste pastetext | selectall | searchreplace' },
@@ -29,7 +30,43 @@
         tools: { title: 'Tools', items: 'spellchecker spellcheckerlanguage | a11ycheck code wordcount' },
         table: { title: 'Table', items: 'inserttable | cell row column | advtablesort | tableprops deletetable' },
         help: { title: 'Help', items: 'help' }
-      }
+      },
+      fullscreen_native: true,
+      templates: [
+        { title: "Voorbeeld", description: "Een voorbeeld template", content: "<p>Zeg maar als je templates nodig hebt</p>" },
+        // { title: 'Some title 2', description: 'Some desc 2', url: 'development.html' }
+      ],
+      file_picker_types: 'file image media',
+      file_picker_callback: (cb, value, meta) => {
+        const input = document.createElement('input')
+        input.setAttribute('type', 'file')
+        input.setAttribute('accept', 'image/*')
+
+        input.addEventListener('change', (e) => {
+          const file = e.target.files[0]
+
+          const reader = new FileReader()
+          reader.addEventListener('load', () => {
+            // register blob in TinyMCE image blob reegistry
+            const id = 'blobid' + (new Date()).getTime()
+            const blobCache = tinymce.activeEditor.editorUpload.blobCache
+            const base64 = reader.result.split(',')[1]
+            const blobInfo = blobCache.create(id, file, base64)
+
+            if (base64.length > 10000000) {
+              alert("Bestand te groot")
+              return
+            }
+            blobCache.add(blobInfo)
+
+            // call the callback and populate the Title field with the file name
+            cb(blobInfo.blobUri(), { title: file.name })
+          })
+          reader.readAsDataURL(file)
+        })
+        input.click()
+      }, 
+      image_title: true,
     })
 
     parser = tinymce.html.DomParser({validate: true}, tinymce.activeEditor.schema)
@@ -41,7 +78,7 @@
   })
 
   function parseHTML() {
-    return tinymce.activeEditor.getContent()
+    return parseHTMLForEmail(tinymce.activeEditor.getContent())
   }
 
   let selectedBannen = []
@@ -70,7 +107,9 @@
       return
     }
 
-    let content = parseHTML()
+    let parsed = parseHTML()
+    let content = parsed.html
+    let attachments = parsed.attachments // TODO: send to api
     if (content == "") {
       alert("Je email is leeg")
       return
@@ -92,10 +131,14 @@
       return
     }
     // send email (one ban at a time)
+    let usrFirstName = currentUsrData.name.split(" ")[0]
+    if (usrFirstName == "" || usrFirstName == null) {
+      usrFirstName = "no_reply"
+    }
     selectedBannen.forEach(async (ban) => {
       const message = {
         FromName: currentUsrData.name,
-        FromAddr: `${currentUsrData.name}@ksadebiekorf.be`,
+        FromAddr: `${usrFirstName}@ksadebiekorf.be`,
         ReplyToName: currentUsrData.name,
         ReplyToAddr: currentUsrData.email,
         Ban: convertBanToDatabaseStandard(ban),
@@ -163,6 +206,7 @@
 
 <div class="new-email">
   <div class="input-container">
+    <button on:click={() => {console.log(parseHTML())}}>parse</button>
     <div class="ban-container">
       <MultiInput name="bannen" id="ban-inp" placeholder="ban(nen)" valueList="{bannen}" altList="{bannen_alt}" onSelect="{selectBan}" onDeselect="{deselectBan}" width=140 />
       <div class="selected-bannen-container">
