@@ -1,5 +1,9 @@
-/// e.g. `kab` -> `Kabouters`
-// see also: `email-server/userDB/ban/enum.god`
+/** e.g. `kab` -> `Kabouters`
+ * 
+ * @see
+ * see also: `email-server/userDB/ban/enum.god`
+ * @returns string
+ */ 
 export default function convertBanToDatabaseStandard(ban) {
     switch (ban.toUpperCase()) {
         case 'KAB':

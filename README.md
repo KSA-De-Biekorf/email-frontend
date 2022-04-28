@@ -14,6 +14,8 @@ npm i -g sass
 npm run dev
 ```
 
+*Benodigdheden*: **node** en **npm**. **Ruby** voor het uploaden naar de ftp server. 
+
 Pas geen bestanden aan in de `public` directory. Pas ze aan in `html` en `scss` en run `./build.sh`.
 
 ## TODO

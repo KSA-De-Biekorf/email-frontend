@@ -1,8 +1,25 @@
 /**
  * Parse HTML from the text editor to an email compatible format
  * 
- * # Errors
+ * @throws
  * When file size is too big
+ * 
+ * @returns a javascript object
+ * 
+ * @example
+ * ```javascript
+ * // Return object
+ * {
+ *   html: string
+ *   attachments: [
+ *     {
+ *       Name: string,
+ *       Type: string,
+ *       Base64: string
+ *     }
+ *   ]
+ * }
+ * ```
  */
 export function parseHTMLForEmail(html) {
     const srcRegex = /src="data:(.*?)"/g
@@ -15,9 +32,11 @@ export function parseHTMLForEmail(html) {
     // e.g. ["image/png;base64,orkezokrzk", "..."]
     let attachmentsString = []
     let titleStrings = []
-    for (let i = 1; i < captures.length; i++) {
-        attachmentsString.push(captures[i])
-        titleStrings.push(titleCaptures[i])
+    if (captures != null) {
+        for (let i = 1; i < captures.length; i++) {
+            attachmentsString.push(captures[i])
+            titleStrings.push(titleCaptures[i])
+        }
     }
 
     let totalSize = 0
@@ -32,9 +51,9 @@ export function parseHTMLForEmail(html) {
         totalSize += base64.length
 
         attachments.push({
-            type: type,
-            name: titleStrings[i],
-            base64: base64
+            Name: titleStrings[i],
+            Type: type,
+            Base64: base64
         })
         
         // replace in html string

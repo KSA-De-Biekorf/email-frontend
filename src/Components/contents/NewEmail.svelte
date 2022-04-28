@@ -1,13 +1,14 @@
 <script>
+  import { onMount, onDestroy } from 'svelte'
+
   import MultiInput from '../components/MultiInput.svelte'
   import Input from '../components/Input.svelte'
   import LabelWithIcon from '../components/LabelWithIcon.svelte'
   import currentUser from '../../../scripts/firebase/stores/currentUser'
   import convertBanToDatabaseStandard from '../../../scripts/ksa/convertBan'
   import { parseHTMLForEmail } from '../../../scripts/ksa/parseHTML'
-
-  import { onMount, onDestroy } from 'svelte'
-  import { retrieveAuthToken } from '../../../scripts/firebase/auth/authToken';
+  import { retrieveAuthToken } from '../../../scripts/firebase/auth/authToken'
+  import sendEmailApi from '../../../scripts/ksa/sendEmail'
 
   const bannen = ["KAB", "PAG", "JKN", "KN", "JHN", "HN", "Leiding", "VWB", "Oud-Leiding"]
   // Hoe het in de database staat
@@ -101,106 +102,9 @@
 
   let responses = []
   function sendEmail() {
-    responses = []
-    if (subject == "") {
-      alert("Je onderwerp is leeg")
-      return
-    }
-
-    let parsed = parseHTML()
-    let content = parsed.html
-    let attachments = parsed.attachments // TODO: send to api
-    if (content == "") {
-      alert("Je email is leeg")
-      return
-    }
-
-    if (selectedBannen.length == 0) {
-      alert("Geen bannen geselecteerd")
-      return
-    }
-
-    // call API
-    let currentUsrData = null
-    let unsubCurrentUser = currentUser.subscribe((data) => {
-      currentUsrData = data
-    })
-
-    if (currentUsrData == null) {
-      alert("Niet ingelogd")
-      return
-    }
-    // send email (one ban at a time)
-    let usrFirstName = currentUsrData.name.split(" ")[0]
-    if (usrFirstName == "" || usrFirstName == null) {
-      usrFirstName = "no_reply"
-    }
-    selectedBannen.forEach(async (ban) => {
-      const message = {
-        FromName: currentUsrData.name,
-        FromAddr: `${usrFirstName}@ksadebiekorf.be`,
-        ReplyToName: currentUsrData.name,
-        ReplyToAddr: currentUsrData.email,
-        Ban: convertBanToDatabaseStandard(ban),
-        Subject: subject,
-        Content: content
-      }
-
-      console.log("Sending email to", ban, `(${convertBanToDatabaseStandard(ban)})`)
-
-      // Prepare api call
-      const endpoint = `https://email-api.ksadebiekorf.be/api/send_email_to_ban`
-
-      const data = JSON.stringify(message)
-      // try catch blocks are evil
-      let token
-      try {
-        token = await retrieveAuthToken()
-      } catch (e) {
-        alert(`Kon niet authorizeren: ${err}`)
-        return
-      }
-      
-      const headers = {
-        'Authorization': token
-      }
-
-      // Make the api request
-      let response
-      try {
-        response = await fetch(endpoint, {
-          method: 'POST',
-          mode: 'cors', // !
-          headers: headers,
-          body: data
-        })
-      } catch (err) {
-        console.log(err)
-        alert(err)
-        return
-      }
-
-      console.log(response)
-
-      const status = response.status
-      const statusText = response.statusText
-      const respData = await response.text()
-
-      console.log(`${status} ${statusText}. ${respData}`)
-
-      if (status >= 200 && status < 300) {
-        responses.push(`Email verzonden naar ${convertBanToDatabaseStandard(ban)}`)
-      } else if (status < 200) {
-        response.body.getReader
-        responses.push(`[i] ${status} ${statusText}. ${respData}`)
-      } else {
-        responses.push(`Error ${status}: ${statusText}. ${respData}`)
-      }
-
-      responses = responses
-    })
-    
-    unsubCurrentUser()
+    sendEmailApi(subject, parseHTML(), selectedBannen)
+      .then((resp) => responses = resp)
+      .catch((err) => responses = [err])
   }
 </script>
 

@@ -4,6 +4,11 @@ import { getAuth } from 'firebase/auth';
 export let app;
 export let auth;
 
+/**
+ * Set up firebase
+ * @param {callback} ready 
+ * @callback `ready`: called when setup has complete
+ */
 export function initFirebase(ready) {
     const firebaseConfig = {
         apiKey: "AIzaSyAQSXRnMxwxnE_ZK5r_KFYfIt4qFvvxqnE",
