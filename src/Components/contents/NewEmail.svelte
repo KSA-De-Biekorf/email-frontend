@@ -102,7 +102,9 @@
 
   let responses = []
   function sendEmail() {
-    sendEmailApi(subject, parseHTML(), selectedBannen)
+    let html = parseHTML()
+    console.log(html)
+    sendEmailApi(subject, html, selectedBannen)
       .then((resp) => responses = resp)
       .catch((err) => responses = [err])
   }
