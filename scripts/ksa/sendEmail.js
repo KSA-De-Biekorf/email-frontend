@@ -76,8 +76,7 @@ export default function sendEmailApi(subject, parsedContent, selectedBannen, fil
       console.log("Sending email to", ban, `(${convertBanToDatabaseStandard(ban)})`)
 
       // Prepare api call
-      // const endpoint = `https://email-api.ksadebiekorf.be/api/send_email_to_ban`
-      const endpoint = `http://localhost:8000/api/send_email_to_ban`
+      const endpoint = `https://email-api.ksadebiekorf.be/api/send_email_to_ban`
 
       const data = JSON.stringify(message)
       // try catch blocks are evil
