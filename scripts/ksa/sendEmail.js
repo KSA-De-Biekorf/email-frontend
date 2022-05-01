@@ -7,8 +7,8 @@ import { retrieveAuthToken } from '../firebase/auth/authToken'
  * @see `email-backend`
  * @returns responses from the server (`[string]`)
  */
-export default function sendEmailApi(subject, parsedContent, selectedBannen) {
-  return new Promise((resolve, reject) => {
+export default function sendEmailApi(subject, parsedContent, selectedBannen, files) {
+  return new Promise(async (resolve, reject) => {
     let responses = []
     let content = parsedContent.html
     let attachments = parsedContent.attachments
@@ -26,6 +26,20 @@ export default function sendEmailApi(subject, parsedContent, selectedBannen) {
     if (selectedBannen.length == 0) {
       alert("Geen bannen geselecteerd")
       reject(new Error("Geen bannen"))
+    }
+
+    for (let file of files) {
+      let type = file.type.replace(/.*?\//, "")
+      try {
+        attachments.push({
+          Name: file.name,
+          Type: type,
+          Base64: await toBase64(file)
+        })
+      } catch (err) {
+        alert(err)
+        return
+      }
     }
     
     // call API
@@ -62,8 +76,8 @@ export default function sendEmailApi(subject, parsedContent, selectedBannen) {
       console.log("Sending email to", ban, `(${convertBanToDatabaseStandard(ban)})`)
 
       // Prepare api call
-      const endpoint = `https://email-api.ksadebiekorf.be/api/send_email_to_ban`
-      console.log("posting to", endpoint)
+      // const endpoint = `https://email-api.ksadebiekorf.be/api/send_email_to_ban`
+      const endpoint = `http://localhost:8000/api/send_email_to_ban`
 
       const data = JSON.stringify(message)
       // try catch blocks are evil
@@ -120,5 +134,19 @@ export default function sendEmailApi(subject, parsedContent, selectedBannen) {
     
     unsubFromCurrentUser()
             
+  })
+}
+
+/** Convert a `File` to base64 */
+function toBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file)
+    reader.onload = () => {
+      let result = reader.result
+      result = result.replace(/data:.*?\/.*?;base64,/, "")
+      resolve(result)
+    }
+    reader.onerror = error => reject(errer)
   })
 }

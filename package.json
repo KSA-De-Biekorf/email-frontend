@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "@material/textfield": "^13.0.0",
+    "@rive-app/canvas": "^1.0.49",
     "firebase": "^9.6.11",
     "sirv-cli": "^2.0.0",
     "string-similarity": "^4.0.4",

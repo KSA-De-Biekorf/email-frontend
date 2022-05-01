@@ -25,6 +25,7 @@
     position: relative;
     padding: 15px 0 0;
     margin: 10px;
+    min-width: 100px;
   }
 
   .input-field {

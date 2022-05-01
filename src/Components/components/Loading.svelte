@@ -1,5 +1,6 @@
 <script>
   import { onMount } from "svelte";
+  import rive from "@rive-app/canvas"
 
   onMount(() => {
     new rive.Rive({

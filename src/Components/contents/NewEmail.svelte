@@ -4,16 +4,16 @@
   import MultiInput from '../components/MultiInput.svelte'
   import Input from '../components/Input.svelte'
   import LabelWithIcon from '../components/LabelWithIcon.svelte'
-  import currentUser from '../../../scripts/firebase/stores/currentUser'
-  import convertBanToDatabaseStandard from '../../../scripts/ksa/convertBan'
   import { parseHTMLForEmail } from '../../../scripts/ksa/parseHTML'
-  import { retrieveAuthToken } from '../../../scripts/firebase/auth/authToken'
   import sendEmailApi from '../../../scripts/ksa/sendEmail'
+  import FileUpload from '../components/FileUpload.svelte'
 
   const bannen = ["KAB", "PAG", "JKN", "KN", "JHN", "HN", "Leiding", "VWB", "Oud-Leiding"]
   // Hoe het in de database staat
   const bannen_alt = ["Kabouters", "Pagadders", "Jongknapn", "Knapen", "Jonghernieuwers", "Hernieuwers", "Leiding", "Vwb", "Oud-Leiding"]
 
+  let onderwerpWidth = 300
+  let selectedFiles = []
   let parser
 
   onMount(() => {
@@ -104,7 +104,7 @@
   function sendEmail() {
     let html = parseHTML()
     console.log(html)
-    sendEmailApi(subject, html, selectedBannen)
+    sendEmailApi(subject, html, selectedBannen, selectedFiles)
       .then((resp) => responses = resp)
       .catch((err) => responses = [err])
   }
@@ -112,7 +112,6 @@
 
 <div class="new-email">
   <div class="input-container">
-    <button on:click={() => {console.log(parseHTML())}}>parse</button>
     <div class="ban-container">
       <MultiInput name="bannen" id="ban-inp" placeholder="ban(nen)" valueList="{bannen}" altList="{bannen_alt}" onSelect="{selectBan}" onDeselect="{deselectBan}" width=140 />
       <div class="selected-bannen-container">
@@ -121,10 +120,13 @@
         {/each}
       </div>
     </div>
-    <!--subject & send-->
+    <!--subject & send & upload file-->
     <div class="subject-container">
-      <Input name="onderwerp" id="subject-inp" placeholder="onderwerp" onChange="{subjectChanged}" width=300/>
+      <Input name="onderwerp" id="subject-inp" placeholder="onderwerp" onChange="{subjectChanged}" width={onderwerpWidth}/>
       <button class="btn" on:click={() => sendEmail()}>verzenden</button>
+      <div style="position: relative; bottom: -3px; margin-right: 15px;">
+        <FileUpload onderwerpWidth={onderwerpWidth} defaultWidth=300 selectedFiles={selectedFiles} />
+      </div>
     </div>
   </div>
   <div class="status {responses.length == 0 ? "hidden" : ""}">
@@ -142,7 +144,7 @@
 
   button {
     margin-bottom: 15px;
-    margin-right: 15px;
+    min-width: 120px;
   }
   .ban-container {
     display: flex;
