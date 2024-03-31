@@ -102,6 +102,7 @@ export default function sendEmailApi(subject, parsedContent, selectedBannen, fil
           body: data
         })
       } catch (err) {
+        // TODO: if error status code = 504 -> timeout
         console.log(err)
         alert(err)
         reject(err)
